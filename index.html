@@ -1,0 +1,712 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1" />
+<title>दिल की बात — मेरी डायरी</title>
+<meta name="description" content="एक निजी डायरी, जहाँ जब मन करे बात कर सको" />
+<meta name="theme-color" content="#151425" />
+<link rel="manifest" href="manifest.json" />
+<link rel="icon" href="icon-192.png" />
+<link rel="apple-touch-icon" href="icon-192.png" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="दिल की बात" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Mukta:wght@300;400;500;600;700&family=Yatra+One&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet" />
+
+<style>
+  :root{
+    --ink:#f3ede2;
+    --ink-dim:#b3a9c7;
+    --ink-faint:#7a7396;
+    --bg-deep:#12111f;
+    --bg-mid:#1e1c33;
+    --bg-panel:#26233f;
+    --bg-panel-2:#2c2949;
+    --panel-line: rgba(232,197,140,0.14);
+    --gold:#e8c58c;
+    --gold-soft:#c9a86b;
+    --rose:#c96a5a;
+    --safe-top: env(safe-area-inset-top, 0px);
+    --safe-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  *{ box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  html,body{ margin:0; padding:0; }
+  body{
+    background: var(--bg-deep);
+    color:var(--ink);
+    font-family:'Mukta', sans-serif;
+    min-height:100vh;
+    overscroll-behavior-y: none;
+  }
+
+  #sky{
+    position:fixed; inset:0; z-index:0;
+    background:
+      radial-gradient(ellipse 700px 500px at 22% -6%, #33305c 0%, transparent 60%),
+      radial-gradient(ellipse 500px 400px at 90% 10%, #251f45 0%, transparent 55%),
+      var(--bg-deep);
+  }
+  canvas#stars{ position:fixed; inset:0; z-index:0; }
+
+  .app{ position:relative; z-index:1; max-width:560px; margin:0 auto; padding: calc(28px + var(--safe-top)) 16px calc(90px + var(--safe-bottom)); }
+
+  /* ---------- Header ---------- */
+  header.hero{ text-align:center; margin-bottom:22px; }
+  .eyebrow{
+    display:inline-flex; align-items:center; gap:8px;
+    color:var(--gold-soft); font-size:12px; letter-spacing:0.16em; text-transform:uppercase;
+    margin-bottom:10px; font-weight:500;
+    opacity:0; animation: riseFade .8s ease forwards .1s;
+  }
+  .eyebrow svg{ width:13px; height:13px; }
+  h1.title{
+    font-family:'Yatra One', cursive; font-weight:400;
+    font-size:clamp(34px, 10vw, 44px);
+    margin:0 0 8px; color:var(--ink);
+    text-shadow: 0 0 30px rgba(232,197,140,0.22);
+    opacity:0; animation: riseFade .9s ease forwards .25s;
+  }
+  .tagline{
+    font-family:'Cormorant Garamond', serif; font-style:italic; font-weight:500;
+    color:var(--ink-dim); font-size:17.5px; margin:0;
+    opacity:0; animation: riseFade .9s ease forwards .4s;
+  }
+  @keyframes riseFade{ from{opacity:0; transform:translateY(10px);} to{opacity:1; transform:translateY(0);} }
+
+  /* ---------- Constellation card ---------- */
+  .constellation-card{
+    background: linear-gradient(160deg, var(--bg-panel), var(--bg-mid));
+    border:1px solid var(--panel-line);
+    border-radius:18px; padding:16px 18px 12px; margin: 24px 0 20px;
+    opacity:0; animation: riseFade .8s ease forwards .55s;
+  }
+  .cc-label{ display:flex; justify-content:space-between; font-size:11.5px; color:var(--ink-faint); letter-spacing:0.08em; margin-bottom:4px; }
+  svg#constellation{ width:100%; height:58px; display:block; }
+  .constellation-empty{ text-align:center; padding:10px 0 4px; color:var(--ink-faint); font-size:13.5px; font-family:'Cormorant Garamond', serif; font-style:italic; }
+
+  /* ---------- Composer toggle ---------- */
+  .composer-toggle{
+    width:100%; display:flex; align-items:center; gap:12px;
+    background: linear-gradient(135deg, var(--bg-panel-2), var(--bg-panel));
+    border:1px solid var(--panel-line); border-radius:18px;
+    padding:17px 18px; color:var(--ink-dim); font-family:'Mukta'; font-size:15.5px;
+    cursor:pointer; transition: border-color .2s ease, transform .12s ease, box-shadow .3s ease;
+    margin-bottom:22px; text-align:left;
+    animation: breathe 5s ease-in-out infinite;
+  }
+  .composer-toggle:hover{ border-color:var(--gold-soft); box-shadow: 0 0 24px rgba(232,197,140,0.08); }
+  .composer-toggle:active{ transform:scale(0.985); }
+  @keyframes breathe{ 0%,100%{ box-shadow: 0 0 0 rgba(232,197,140,0); } 50%{ box-shadow: 0 0 18px rgba(232,197,140,0.06); } }
+  .plus-badge{
+    width:32px; height:32px; border-radius:50%; flex-shrink:0;
+    background: radial-gradient(circle at 32% 28%, #f4dcae, var(--gold));
+    color:#211f38; display:flex; align-items:center; justify-content:center;
+  }
+
+  /* ---------- Composer ---------- */
+  .composer{
+    background: var(--bg-panel); border:1px solid var(--panel-line); border-radius:20px;
+    padding:18px; margin-bottom:24px;
+    animation: expand .3s cubic-bezier(.2,.8,.3,1);
+    transform-origin: top center;
+  }
+  @keyframes expand{ from{opacity:0; transform:translateY(-8px) scaleY(0.97);} to{opacity:1; transform:translateY(0) scaleY(1);} }
+
+  textarea#entryText{
+    width:100%; min-height:118px; background:transparent; border:none; outline:none; resize:vertical;
+    color:var(--ink); font-family:'Mukta'; font-size:16.5px; line-height:1.7; padding:4px 2px 12px;
+  }
+  textarea#entryText::placeholder{ color:var(--ink-faint); }
+
+  .mood-row{ display:flex; flex-wrap:wrap; gap:8px; margin:4px 0 15px; }
+  .mood-chip{
+    display:flex; align-items:center; gap:7px; padding:8px 13px 8px 9px;
+    border-radius:999px; border:1px solid var(--panel-line); background:var(--bg-mid);
+    color:var(--ink-dim); font-size:13.5px; cursor:pointer; transition:all .18s ease; font-family:'Mukta';
+  }
+  .mood-chip .dot{ width:9px; height:9px; border-radius:50%; transition: transform .18s ease; }
+  .mood-chip.active{ color:var(--ink); transform: translateY(-1px); }
+  .mood-chip.active .dot{ transform: scale(1.3); }
+
+  .image-strip{ display:flex; gap:9px; flex-wrap:wrap; margin-bottom:14px; }
+  .image-thumb{ position:relative; width:66px; height:66px; border-radius:12px; overflow:hidden; animation: popIn .25s ease; }
+  @keyframes popIn{ from{ transform:scale(0.7); opacity:0; } to{ transform:scale(1); opacity:1; } }
+  .image-thumb img{ width:100%; height:100%; object-fit:cover; display:block; }
+  .image-thumb button{
+    position:absolute; top:3px; right:3px; width:19px; height:19px; border-radius:50%;
+    background:rgba(18,17,31,0.82); border:none; color:var(--ink); display:flex; align-items:center; justify-content:center;
+    cursor:pointer; font-size:11px; line-height:1;
+  }
+
+  .composer-actions{ display:flex; align-items:center; justify-content:space-between; gap:10px; padding-top:12px; border-top:1px solid var(--panel-line); }
+  .icon-btn{
+    background:var(--bg-mid); border:1px solid var(--panel-line); color:var(--ink-dim);
+    width:40px; height:40px; border-radius:12px; display:flex; align-items:center; justify-content:center; cursor:pointer;
+    transition: color .15s ease, border-color .15s ease;
+  }
+  .icon-btn:hover{ color:var(--gold); border-color:var(--gold-soft); }
+  .icon-btn:disabled{ opacity:0.4; cursor:default; }
+  .right-actions{ display:flex; gap:8px; }
+  .btn-cancel{
+    background:transparent; border:1px solid var(--panel-line); color:var(--ink-dim);
+    padding:10px 17px; border-radius:12px; font-family:'Mukta'; font-size:14px; cursor:pointer;
+  }
+  .btn-save{
+    background: linear-gradient(135deg, #f4dcae, var(--gold)); border:none; color:#241f3a; font-weight:700;
+    padding:10px 22px; border-radius:12px; font-family:'Mukta'; font-size:14px; cursor:pointer;
+    box-shadow: 0 4px 18px rgba(232,197,140,0.25);
+    transition: transform .12s ease;
+  }
+  .btn-save:active{ transform: scale(0.97); }
+  .btn-save:disabled{ opacity:0.5; box-shadow:none; cursor:default; }
+
+  /* ---------- Toast ---------- */
+  #toast{
+    position:fixed; left:50%; bottom: calc(24px + var(--safe-bottom));
+    transform: translateX(-50%) translateY(20px); z-index:50;
+    background: var(--bg-panel-2); border:1px solid var(--panel-line); color:var(--ink);
+    padding:11px 18px; border-radius:14px; font-size:13.5px;
+    opacity:0; pointer-events:none; transition: all .3s cubic-bezier(.2,.8,.3,1);
+    max-width: 90vw; text-align:center;
+  }
+  #toast.show{ opacity:1; transform: translateX(-50%) translateY(0); }
+
+  /* ---------- Empty state ---------- */
+  .empty-state{ text-align:center; padding:56px 20px; color:var(--ink-dim); }
+  .empty-state .moon-wrap{ margin-bottom:14px; opacity:0.6; animation: float 4s ease-in-out infinite; }
+  @keyframes float{ 0%,100%{ transform:translateY(0); } 50%{ transform:translateY(-6px); } }
+  .empty-state h3{ font-family:'Cormorant Garamond', serif; font-style:italic; font-weight:500; font-size:23px; color:var(--ink); margin:0 0 6px; }
+  .empty-state p{ font-size:14.5px; margin:0; }
+
+  /* ---------- Entries ---------- */
+  .day-label{ font-size:12px; letter-spacing:0.1em; color:var(--gold-soft); margin:28px 0 11px 4px; text-transform:uppercase; }
+
+  .entry-card{
+    background: var(--bg-panel); border:1px solid var(--panel-line); border-radius:18px;
+    padding:17px 17px 15px; margin-bottom:13px; position:relative;
+    animation: cardIn .4s cubic-bezier(.2,.8,.3,1);
+  }
+  @keyframes cardIn{ from{ opacity:0; transform: translateY(10px); } to{ opacity:1; transform:translateY(0); } }
+  .entry-top{ display:flex; align-items:center; justify-content:space-between; margin-bottom:9px; }
+  .entry-mood{ display:flex; align-items:center; gap:7px; font-size:13px; color:var(--ink-dim); }
+  .entry-mood .dot{ width:9px; height:9px; border-radius:50%; }
+  .entry-time{ font-size:12px; color:var(--ink-faint); }
+  .entry-text{ font-size:15.5px; line-height:1.75; color:var(--ink); white-space:pre-wrap; margin:0 0 11px; }
+  .entry-images{ display:flex; gap:8px; flex-wrap:wrap; }
+  .entry-images img{ width:90px; height:90px; object-fit:cover; border-radius:12px; cursor:pointer; }
+  .delete-btn{
+    position:absolute; top:15px; right:15px; background:transparent; border:none; color:var(--ink-faint);
+    cursor:pointer; opacity:0; transition:opacity .15s ease; padding:4px;
+  }
+  .entry-card:hover .delete-btn, .entry-card:active .delete-btn{ opacity:1; }
+  .delete-btn:hover{ color:var(--rose); }
+
+  /* ---------- Lightbox ---------- */
+  #lightbox{
+    position:fixed; inset:0; background:rgba(10,9,18,0.92); z-index:100;
+    display:none; align-items:center; justify-content:center; padding:24px;
+    backdrop-filter: blur(6px);
+  }
+  #lightbox.show{ display:flex; animation: fadeIn .2s ease; }
+  @keyframes fadeIn{ from{opacity:0;} to{opacity:1;} }
+  #lightbox img{ max-width:100%; max-height:85vh; border-radius:14px; box-shadow: 0 20px 60px rgba(0,0,0,0.5); }
+
+  /* ---------- Install banner ---------- */
+  #installBanner{
+    position:fixed; left:12px; right:12px; bottom: calc(14px + var(--safe-bottom)); z-index:40;
+    background: linear-gradient(135deg, var(--bg-panel-2), var(--bg-panel));
+    border:1px solid var(--gold-soft); border-radius:16px; padding:13px 15px;
+    display:none; align-items:center; gap:12px; max-width:530px; margin:0 auto;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.35);
+  }
+  #installBanner.show{ display:flex; animation: riseFade .35s ease; }
+  #installBanner .txt{ flex:1; font-size:13.5px; color:var(--ink-dim); }
+  #installBanner button.install-btn{
+    background:var(--gold); border:none; color:#241f3a; font-weight:700; font-size:13px;
+    padding:8px 14px; border-radius:10px; cursor:pointer; white-space:nowrap;
+  }
+  #installBanner button.dismiss{ background:transparent; border:none; color:var(--ink-faint); font-size:18px; cursor:pointer; padding:2px 6px; }
+
+  ::-webkit-scrollbar{ width:0; }
+
+  @media (max-width:420px){
+    h1.title{ font-size:32px; }
+    .entry-images img{ width:76px; height:76px; }
+  }
+</style>
+</head>
+<body>
+
+<div id="sky"></div>
+<canvas id="stars"></canvas>
+
+<div class="app">
+  <header class="hero">
+    <div class="eyebrow">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+      <span>अंकिता की डायरी</span>
+    </div>
+    <h1 class="title">दिल की बात</h1>
+    <p class="tagline">जब मन करे, यहाँ लिख देना</p>
+  </header>
+
+  <div class="constellation-card" id="constellationCard" style="display:none;">
+    <div class="cc-label"><span>पिछले मूड</span><span id="entryCount"></span></div>
+    <svg id="constellation" viewBox="0 0 320 58" preserveAspectRatio="none"></svg>
+  </div>
+
+  <button class="composer-toggle" id="composerToggle">
+    <span class="plus-badge">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
+    </span>
+    <span>आज क्या महसूस हो रहा है...</span>
+  </button>
+
+  <div class="composer" id="composer" style="display:none;">
+    <textarea id="entryText" placeholder="जो भी मन में है, यहाँ लिख दो..."></textarea>
+
+    <div class="mood-row" id="moodRow"></div>
+
+    <div class="image-strip" id="imageStrip"></div>
+
+    <div class="composer-actions">
+      <div>
+        <input type="file" id="fileInput" accept="image/*" multiple hidden />
+        <button class="icon-btn" id="addImageBtn" title="फ़ोटो जोड़ें">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+        </button>
+      </div>
+      <div class="right-actions">
+        <button class="btn-cancel" id="cancelBtn">रहने दो</button>
+        <button class="btn-save" id="saveBtn">लिख दो</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="entriesContainer"></div>
+
+  <div class="empty-state" id="emptyState" style="display:none;">
+    <div class="moon-wrap">
+      <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#e8c58c" stroke-width="1.6"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+    </div>
+    <h3>अभी कोई पन्ना नहीं लिखा गया</h3>
+    <p>पहला पन्ना तुम्हारा इंतज़ार कर रहा है</p>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<div id="lightbox"><img id="lightboxImg" src="" alt="" /></div>
+
+<div id="installBanner">
+  <span class="txt">इसे होम स्क्रीन पर ऐप की तरह इंस्टॉल करो</span>
+  <button class="install-btn" id="installBtn">इंस्टॉल करो</button>
+  <button class="dismiss" id="dismissInstall">✕</button>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  var MOODS = [
+    { id:"khush",   label:"खुश",   color:"#e8b567", glow:"#f4d199" },
+    { id:"shant",   label:"शांत",  color:"#8fb3c9", glow:"#bcd6e6" },
+    { id:"udaas",   label:"उदास",  color:"#6b6390", glow:"#9a90c4" },
+    { id:"gussa",   label:"गुस्सा", color:"#c96a5a", glow:"#e69a89" },
+    { id:"confuse", label:"उलझन",  color:"#a88fc9", glow:"#cbb6e6" },
+    { id:"umeed",   label:"उम्मीद", color:"#7fb08a", glow:"#a9d6b4" }
+  ];
+  var moodMap = {};
+  MOODS.forEach(function(m){ moodMap[m.id] = m; });
+
+  var STORAGE_KEY = "dilKiBaat.entries.v1";
+  var selectedMood = "shant";
+  var pendingImages = [];
+  var entries = [];
+
+  // ---------- Storage ----------
+  function loadEntries(){
+    try{
+      var raw = localStorage.getItem(STORAGE_KEY);
+      entries = raw ? JSON.parse(raw) : [];
+      entries.sort(function(a,b){ return b.ts - a.ts; });
+    }catch(e){
+      entries = [];
+      showToast("पुरानी एंट्रीज़ लोड करने में दिक्कत हुई");
+    }
+  }
+  function persistEntries(){
+    try{
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(entries));
+      return true;
+    }catch(e){
+      return false;
+    }
+  }
+
+  // ---------- Toast ----------
+  var toastEl = document.getElementById("toast");
+  var toastTimer = null;
+  function showToast(msg, ms){
+    toastEl.textContent = msg;
+    toastEl.classList.add("show");
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function(){ toastEl.classList.remove("show"); }, ms || 3200);
+  }
+
+  // ---------- Date formatting ----------
+  var DAYS = ["रविवार","सोमवार","मंगलवार","बुधवार","गुरुवार","शुक्रवार","शनिवार"];
+  var MONTHS = ["जन","फर","मार्च","अप्रैल","मई","जून","जुल","अग","सित","अक्तू","नव","दिस"];
+  function formatDate(ts){
+    var d = new Date(ts);
+    return DAYS[d.getDay()] + ", " + d.getDate() + " " + MONTHS[d.getMonth()];
+  }
+  function formatTime(ts){
+    var d = new Date(ts);
+    var h = d.getHours();
+    var m = String(d.getMinutes()).padStart(2,"0");
+    var ampm = h >= 12 ? "शाम" : "सुबह";
+    h = h % 12 || 12;
+    return h + ":" + m + " " + ampm;
+  }
+
+  // ---------- Image resize ----------
+  function resizeImage(file, maxDim, quality){
+    maxDim = maxDim || 640; quality = quality || 0.6;
+    return new Promise(function(resolve, reject){
+      var reader = new FileReader();
+      reader.onload = function(e){
+        var img = new Image();
+        img.onload = function(){
+          var w = img.width, h = img.height;
+          if (w > h && w > maxDim){ h = Math.round(h * maxDim / w); w = maxDim; }
+          else if (h > maxDim){ w = Math.round(w * maxDim / h); h = maxDim; }
+          var canvas = document.createElement("canvas");
+          canvas.width = w; canvas.height = h;
+          var ctx = canvas.getContext("2d");
+          ctx.drawImage(img, 0, 0, w, h);
+          resolve(canvas.toDataURL("image/jpeg", quality));
+        };
+        img.onerror = reject;
+        img.src = e.target.result;
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  }
+
+  // ---------- Mood chips ----------
+  var moodRow = document.getElementById("moodRow");
+  function renderMoodChips(){
+    moodRow.innerHTML = "";
+    MOODS.forEach(function(m){
+      var chip = document.createElement("button");
+      chip.className = "mood-chip" + (m.id === selectedMood ? " active" : "");
+      chip.style.borderColor = m.id === selectedMood ? m.color : "";
+      chip.style.background = m.id === selectedMood ? "color-mix(in srgb, " + m.color + " 18%, #1e1c33)" : "";
+      chip.innerHTML = '<span class="dot" style="background:' + m.color + '"></span>' + m.label;
+      chip.addEventListener("click", function(){
+        selectedMood = m.id;
+        renderMoodChips();
+      });
+      moodRow.appendChild(chip);
+    });
+  }
+  renderMoodChips();
+
+  // ---------- Image strip ----------
+  var imageStrip = document.getElementById("imageStrip");
+  function renderImageStrip(){
+    imageStrip.innerHTML = "";
+    pendingImages.forEach(function(src, i){
+      var thumb = document.createElement("div");
+      thumb.className = "image-thumb";
+      var img = document.createElement("img");
+      img.src = src;
+      var btn = document.createElement("button");
+      btn.innerHTML = "✕";
+      btn.addEventListener("click", function(){
+        pendingImages.splice(i,1);
+        renderImageStrip();
+      });
+      thumb.appendChild(img);
+      thumb.appendChild(btn);
+      imageStrip.appendChild(thumb);
+    });
+  }
+
+  document.getElementById("addImageBtn").addEventListener("click", function(){
+    if (pendingImages.length >= 4){ showToast("ज़्यादा से ज़्यादा 4 फ़ोटो जोड़ सकती हो"); return; }
+    document.getElementById("fileInput").click();
+  });
+  document.getElementById("fileInput").addEventListener("change", function(e){
+    var files = Array.prototype.slice.call(e.target.files || []).slice(0, 4 - pendingImages.length);
+    var chain = Promise.resolve();
+    files.forEach(function(file){
+      if (!file.type.startsWith("image/")) return;
+      chain = chain.then(function(){
+        return resizeImage(file).then(function(dataUrl){
+          pendingImages.push(dataUrl);
+          renderImageStrip();
+        });
+      }).catch(function(){ showToast("फ़ोटो जोड़ने में दिक्कत हुई"); });
+    });
+    e.target.value = "";
+  });
+
+  // ---------- Composer open/close ----------
+  var composerToggle = document.getElementById("composerToggle");
+  var composer = document.getElementById("composer");
+  var entryText = document.getElementById("entryText");
+
+  function openComposer(){
+    composerToggle.style.display = "none";
+    composer.style.display = "block";
+    setTimeout(function(){ entryText.focus(); }, 50);
+  }
+  function closeComposer(reset){
+    composer.style.display = "none";
+    composerToggle.style.display = "flex";
+    if (reset){
+      entryText.value = "";
+      pendingImages = [];
+      selectedMood = "shant";
+      renderMoodChips();
+      renderImageStrip();
+    }
+  }
+  composerToggle.addEventListener("click", openComposer);
+  document.getElementById("cancelBtn").addEventListener("click", function(){ closeComposer(true); });
+
+  // ---------- Save entry ----------
+  document.getElementById("saveBtn").addEventListener("click", function(){
+    var text = entryText.value.trim();
+    if (!text && pendingImages.length === 0) return;
+
+    var entry = {
+      id: Date.now() + "-" + Math.random().toString(36).slice(2,8),
+      ts: Date.now(),
+      text: text,
+      mood: selectedMood,
+      images: pendingImages.slice()
+    };
+
+    var payloadSize = JSON.stringify(entry).length;
+    if (payloadSize > 4.5 * 1024 * 1024){
+      showToast("फ़ोटो का साइज़ बहुत बड़ा है, कम फ़ोटो लगाओ");
+      return;
+    }
+
+    entries.unshift(entry);
+    var ok = persistEntries();
+    renderEntries();
+    renderConstellation();
+    closeComposer(true);
+
+    if (ok){
+      showToast("सेव हो गया 🌙");
+    } else {
+      showToast("यह डिवाइस पर सेव नहीं हो पाया, स्टोरेज भरा हो सकता है");
+    }
+  });
+
+  // ---------- Delete entry ----------
+  function deleteEntry(id){
+    entries = entries.filter(function(e){ return e.id !== id; });
+    persistEntries();
+    renderEntries();
+    renderConstellation();
+    showToast("एंट्री हटा दी गई");
+  }
+
+  // ---------- Constellation ----------
+  function renderConstellation(){
+    var card = document.getElementById("constellationCard");
+    var svg = document.getElementById("constellation");
+    var countEl = document.getElementById("entryCount");
+    if (entries.length < 2){ card.style.display = "none"; return; }
+    card.style.display = "block";
+    countEl.textContent = entries.length + " एंट्रीज़";
+
+    var recent = entries.slice(0, 14).slice().reverse();
+    var w = 320, h = 58, pad = 14;
+    var step = recent.length > 1 ? (w - pad*2) / (recent.length - 1) : 0;
+    var points = recent.map(function(e, i){
+      var mood = moodMap[e.mood] || MOODS[1];
+      var x = pad + step * i;
+      var seed = (e.ts % 1000) / 1000;
+      var y = h * 0.2 + seed * h * 0.6;
+      return { x:x, y:y, color:mood.color, glow:mood.glow, id:e.id };
+    });
+    var path = points.map(function(p,i){ return (i===0?"M ":"L ") + p.x.toFixed(1) + " " + p.y.toFixed(1); }).join(" ");
+    var svgNS = "http://www.w3.org/2000/svg";
+    svg.innerHTML = "";
+    var pathEl = document.createElementNS(svgNS, "path");
+    pathEl.setAttribute("d", path);
+    pathEl.setAttribute("fill", "none");
+    pathEl.setAttribute("stroke", "rgba(232,197,140,0.28)");
+    pathEl.setAttribute("stroke-width", "1");
+    svg.appendChild(pathEl);
+    points.forEach(function(p){
+      var g = document.createElementNS(svgNS, "g");
+      var glow = document.createElementNS(svgNS, "circle");
+      glow.setAttribute("cx", p.x); glow.setAttribute("cy", p.y); glow.setAttribute("r", "5");
+      glow.setAttribute("fill", p.glow); glow.setAttribute("opacity", "0.35");
+      var dot = document.createElementNS(svgNS, "circle");
+      dot.setAttribute("cx", p.x); dot.setAttribute("cy", p.y); dot.setAttribute("r", "2.3");
+      dot.setAttribute("fill", p.color);
+      g.appendChild(glow); g.appendChild(dot);
+      svg.appendChild(g);
+    });
+  }
+
+  // ---------- Render entries ----------
+  var entriesContainer = document.getElementById("entriesContainer");
+  var emptyState = document.getElementById("emptyState");
+
+  function renderEntries(){
+    entriesContainer.innerHTML = "";
+    if (entries.length === 0){
+      emptyState.style.display = "block";
+      return;
+    }
+    emptyState.style.display = "none";
+
+    var lastDay = null;
+    entries.forEach(function(entry){
+      var dayKey = new Date(entry.ts).toDateString();
+      if (dayKey !== lastDay){
+        var label = document.createElement("div");
+        label.className = "day-label";
+        label.textContent = formatDate(entry.ts);
+        entriesContainer.appendChild(label);
+        lastDay = dayKey;
+      }
+
+      var m = moodMap[entry.mood] || MOODS[1];
+      var card = document.createElement("div");
+      card.className = "entry-card";
+
+      var delBtn = document.createElement("button");
+      delBtn.className = "delete-btn";
+      delBtn.innerHTML = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>';
+      delBtn.addEventListener("click", function(){
+        if (confirm("यह एंट्री हमेशा के लिए मिटा दें?")) deleteEntry(entry.id);
+      });
+      card.appendChild(delBtn);
+
+      var top = document.createElement("div");
+      top.className = "entry-top";
+      top.innerHTML =
+        '<div class="entry-mood"><span class="dot" style="background:' + m.color + '"></span>' + m.label + '</div>' +
+        '<div class="entry-time">' + formatTime(entry.ts) + '</div>';
+      card.appendChild(top);
+
+      if (entry.text){
+        var p = document.createElement("p");
+        p.className = "entry-text";
+        p.textContent = entry.text;
+        card.appendChild(p);
+      }
+
+      if (entry.images && entry.images.length){
+        var imgsWrap = document.createElement("div");
+        imgsWrap.className = "entry-images";
+        entry.images.forEach(function(src){
+          var im = document.createElement("img");
+          im.src = src;
+          im.addEventListener("click", function(){ openLightbox(src); });
+          imgsWrap.appendChild(im);
+        });
+        card.appendChild(imgsWrap);
+      }
+
+      entriesContainer.appendChild(card);
+    });
+  }
+
+  // ---------- Lightbox ----------
+  var lightbox = document.getElementById("lightbox");
+  var lightboxImg = document.getElementById("lightboxImg");
+  function openLightbox(src){
+    lightboxImg.src = src;
+    lightbox.classList.add("show");
+  }
+  lightbox.addEventListener("click", function(){ lightbox.classList.remove("show"); });
+
+  // ---------- Starfield ----------
+  var canvas = document.getElementById("stars");
+  var ctx = canvas.getContext("2d");
+  var stars = [];
+  function initStars(){
+    var w = canvas.width = window.innerWidth * devicePixelRatio;
+    var h = canvas.height = window.innerHeight * devicePixelRatio;
+    canvas.style.width = window.innerWidth + "px";
+    canvas.style.height = window.innerHeight + "px";
+    stars = [];
+    var count = Math.min(70, Math.floor((window.innerWidth * window.innerHeight) / 14000));
+    for (var i=0;i<count;i++){
+      stars.push({
+        x: Math.random()*w, y: Math.random()*h*0.75,
+        r: (Math.random()*1.4+0.4) * devicePixelRatio,
+        phase: Math.random()*Math.PI*2,
+        speed: Math.random()*0.02+0.008
+      });
+    }
+  }
+  var reduceMotion = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  function drawStars(t){
+    ctx.clearRect(0,0,canvas.width, canvas.height);
+    stars.forEach(function(s){
+      var op = reduceMotion ? 0.5 : 0.25 + Math.abs(Math.sin(s.phase + t*s.speed)) * 0.55;
+      ctx.beginPath();
+      ctx.arc(s.x, s.y, s.r, 0, Math.PI*2);
+      ctx.fillStyle = "rgba(232,197,140," + op.toFixed(2) + ")";
+      ctx.fill();
+    });
+    if (!reduceMotion) requestAnimationFrame(drawStars);
+  }
+  window.addEventListener("resize", initStars);
+  initStars();
+  requestAnimationFrame(drawStars);
+
+  // ---------- PWA install prompt ----------
+  var deferredPrompt = null;
+  var installBanner = document.getElementById("installBanner");
+  window.addEventListener("beforeinstallprompt", function(e){
+    e.preventDefault();
+    deferredPrompt = e;
+    if (!localStorage.getItem("dilKiBaat.installDismissed")){
+      installBanner.classList.add("show");
+    }
+  });
+  document.getElementById("installBtn").addEventListener("click", function(){
+    installBanner.classList.remove("show");
+    if (deferredPrompt){
+      deferredPrompt.prompt();
+      deferredPrompt = null;
+    }
+  });
+  document.getElementById("dismissInstall").addEventListener("click", function(){
+    installBanner.classList.remove("show");
+    localStorage.setItem("dilKiBaat.installDismissed", "1");
+  });
+
+  // ---------- Service worker ----------
+  if ("serviceWorker" in navigator){
+    window.addEventListener("load", function(){
+      navigator.serviceWorker.register("sw.js").catch(function(){});
+    });
+  }
+
+  // ---------- Init ----------
+  loadEntries();
+  renderEntries();
+  renderConstellation();
+})();
+</script>
+</body>
+</html>
